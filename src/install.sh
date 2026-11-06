@@ -33,7 +33,7 @@ explain() {
       local last
       last=$(printf '%s\n' "$out" | grep -E 'Failure|failed|error' | tail -1)
       [ -n "$last" ] || last=$(printf '%s\n' "$out" | tail -1)
-      printf 'OTHER\t安装失败：%s' "$last" ;;
+      printf 'OTHER\t安装失败：%s' "$(printf '%s' "$last" | tr '\t' ' ')" ;;
   esac
 }
 
@@ -42,7 +42,8 @@ device_name() {
   props=$("$ADB" -s "$1" shell 'getprop ro.config.marketing_name; getprop ro.product.marketname; getprop ro.product.brand; getprop ro.product.model' </dev/null 2>/dev/null | tr -d '\r')
   name=$(printf '%s\n' "$props" | sed -n 1p)
   [ -n "$name" ] || name=$(printf '%s\n' "$props" | sed -n 2p)
-  [ -n "$name" ] || name="$(printf '%s\n' "$props" | sed -n 3p) $(printf '%s\n' "$props" | sed -n 4p)"
+  [ -n "$name" ] || name=$(printf '%s %s' "$(printf '%s\n' "$props" | sed -n 3p)" "$(printf '%s\n' "$props" | sed -n 4p)" | sed 's/^ *//; s/ *$//')
+  [ -n "$name" ] || name="未知机型"
   printf '%s' "$name"
 }
 

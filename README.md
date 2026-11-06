@@ -99,14 +99,14 @@ tests/run_tests.sh  # 用假的 adb/aapt2 测装包脚本和安装脚本，不�
 ### 踩过的坑
 
 - **循环里调 `adb shell` 要加 `</dev/null`**：`adb shell` 会读走标准输入。`adb devices | while read …` 循环里不加的话，第一台手机之后的行全被吃掉，多台手机只显示一台。测试里的假 adb 也会读标准输入，用来防回归。
-- **不能调用 lipo、otool**：没装 Xcode 命令行工具的 Mac 上它们只是空壳，一调用就弹「安装开发者工具」。`build.sh` 改用系统自带的 `file -b` 判断架构、`grep -a '@rpath/'` 判断外部库依赖。验证方法：`DEVELOPER_DIR=/nonexistent` 下跑一遍安装，调到空壳就会报错。
+- **不能调用 lipo、otool**：没装 Xcode 命令行工具的 Mac 上它们只是空壳，一调用就弹「安装开发者工具」。`build.sh` 只用系统自带的 `file -b` 判断架构、`grep -a '@rpath/'` 判断外部库依赖。验证方法：`DEVELOPER_DIR=/nonexistent` 下跑一遍安装，调到空壳就会报错。
 - **脚本里变量紧挨中文要加花括号**：macOS 自带 bash 3.2 会把 `$sha，` 里的中文标点当成变量名的一部分，`set -u` 下直接报「unbound variable」。写成 `${sha}，`。
 - **自己下载、就地打包的 App 不带隔离标记**：`curl` 下载不加 quarantine，所以一键安装不用去「系统设置」放行；从聊天工具或浏览器下载的 zip 才需要。
 - **Maven 上的 aapt2 jar 解压后没有执行权限**，要 `chmod +x`。
-- **用 aapt2，不用 aapt**：build-tools 里的 `aapt` 依赖同目录的 `lib64/libc++.dylib`，单独拷出来跑不了；`aapt2` 只依赖系统库。`build.sh` 会检查 `otool -L` 里有没有 `@rpath`。
-- **adb、aapt2 要同时支持 Intel 和 M 芯片**：`build.sh` 用 `lipo -archs` 检查，不是通用版就拒绝打包。
+- **用 aapt2，不用 aapt**：build-tools 里的 `aapt` 依赖同目录的 `lib64/libc++.dylib`，单独拷出来跑不了；`aapt2` 只依赖系统库。`build.sh` 用 `grep -a '@rpath/'` 检查有没有外部库依赖。
+- **adb、aapt2 要同时支持 Intel 和 M 芯片**：`build.sh` 用 `file -b` 检查同时含 x86_64 和 arm64，不是通用版就拒绝打包。
 - **复制来的 adb 可能带下载隔离标记**（如 Homebrew 安装的），会被打进 zip。`build.sh` 签名前 `xattr -cr`，打 zip 用 `--norsrc --noextattr`。
-- **签名不加 `--deep`**：只给 App 本身做本机临时签名，adb、aapt2 保留 Google 原签名。没有 Developer ID 证书就无法公证，使用者第一次要手动放行。
+- **签名不加 `--deep`**：只给 App 本身做本机临时签名，adb、aapt2 保留 Google 原签名。没有 Developer ID 证书就无法公证，从 zip 安装的使用者第一次要手动放行。
 - **`osacompile` 生成的 Info.plist 没有 `CFBundleIdentifier`**，要用 `PlistBuddy Add`，不能用 `Set`。
 - **只在需要卸载时才读包名**：`aapt2 dump packagename` 约 0.2 秒，正常安装不调用。
 - `adb install` 的「降级」报错里没有包名，所以卸载前必须从 APK 本身读包名，不能靠解析报错。

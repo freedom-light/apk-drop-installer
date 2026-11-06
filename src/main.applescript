@@ -139,8 +139,11 @@ on splitText(s, delim)
 	set AppleScript's text item delimiters to old
 	-- 去掉末尾换行
 	set lastItem to item -1 of parts
-	if lastItem ends with linefeed then set item -1 of parts to text 1 thru -2 of lastItem
-	if (item -1 of parts) is linefeed then set item -1 of parts to ""
+	if lastItem is linefeed then
+		set item -1 of parts to ""
+	else if lastItem ends with linefeed then
+		set item -1 of parts to text 1 thru -2 of lastItem
+	end if
 	return parts
 end splitText
 

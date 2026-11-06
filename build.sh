@@ -8,7 +8,7 @@ NAME="APK拖放安装"
 APP="build/$NAME.app"
 SDK=${ANDROID_HOME:-$HOME/Library/Android/sdk}
 ADB=${ADB:-$(command -v adb || echo "$SDK/platform-tools/adb")}
-AAPT2=${AAPT2:-$(ls "$SDK"/build-tools/*/aapt2 2>/dev/null | sort -V | tail -1)}
+AAPT2=${AAPT2:-$( (ls "$SDK"/build-tools/*/aapt2 2>/dev/null | sort -V | tail -1) || true)}
 
 die() { echo "打包失败：$*" >&2; exit 1; }
 

@@ -51,6 +51,14 @@ BBB${T}device${T}realme RMX3562"
 reset
 printf 'CCC\tdevice\n' >"$FAKE/devices"
 printf '\nOPPO Find N3\nOPPO\nPKB110\n' >"$FAKE/props_CCC"
+reset
+printf 'DDD\tdevice\n' >"$FAKE/devices"
+printf '\n\n\n\n' >"$FAKE/props_DDD"
+check "读不到机型显示未知机型" "$(bash "$RUN" devices)" "DDD${T}device${T}未知机型"
+
+reset
+printf 'CCC\tdevice\n' >"$FAKE/devices"
+printf '\nOPPO Find N3\nOPPO\nPKB110\n' >"$FAKE/props_CCC"
 check "用 ro.product.marketname" "$(bash "$RUN" devices)" "CCC${T}device${T}OPPO Find N3"
 
 # install
